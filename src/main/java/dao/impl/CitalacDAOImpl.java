@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CitalacDAOImpl {
-    List<CitalacStatsDTO> getCitalacStats(String usrnm) throws SQLException{
+public class CitalacDAOImpl implements CitalacDAO{
+    public List<CitalacStatsDTO> getCitalacStats(String usrnm) throws SQLException{
         String query = "SELECT\n" +
                 "\tcitalac.usrnm,\n" +
                 "\tnas_str AS \"Naslov\",\n" +

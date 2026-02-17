@@ -1,9 +1,11 @@
 package ui_handler;
 
 import connection.ConnectionUtil_HikariCP;
+import dto.CitalacStatsDTO;
 import dto.SerijalStatsDTO;
 import dto.SerijalZanrStatsDTO;
 import service.ComplexFunctionalityService;
+import service.DataSeedingService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,7 +18,7 @@ import java.util.Scanner;
 public class MainUIHandler {
     public static Scanner sc = new Scanner(System.in);
     private static final ComplexFunctionalityService complexFunctionalityService = new ComplexFunctionalityService();
-
+    private static final DataSeedingService dataSeedingService = new DataSeedingService();
     public void handleMainMenu() {
         String answer;
 
@@ -35,7 +37,7 @@ public class MainUIHandler {
         System.out.println("\nOdaberite opciju:");
         System.out.println("1 - Inicijalizovanje baze i podataka (DDL i DML)");
         System.out.println("2 - Izvestaj o serijalu i broju zanrova"); // jednostavan upit
-        System.out.println("3 - Izvestaj o serijalu odredjenog zanra (info o autorima i prosecnom broju delova)"); // kompleksan upit
+        System.out.println("3 - Izvestaj o serijalima sa vise od jednog stripa (info o autorima i prosecnom broju delova)"); // kompleksan upit
         System.out.println("4 - Izvestaj o procitanom broju delova stripa po korisniku"); // kompleksan upit
         System.out.println("5 - Direktan unos stripa i serijala sa istim nazivom"); // transakcija
         System.out.println("X - Izlazak iz programa");
@@ -45,8 +47,8 @@ public class MainUIHandler {
         switch(answer) {
             case "1":
                 try {
-                    runDDL();
-                    runDML();
+                    dataSeedingService.runDDL();
+                    dataSeedingService.runDML();
                 }
                 catch (Exception e){
                     System.out.println("Error: " + e.getMessage());
@@ -59,6 +61,10 @@ public class MainUIHandler {
             case "3":
                 showSerijalStats();
                 break;
+            case "4":
+                System.out.println("Username (mivanovic, ajovanovic, ptomic): ");
+                String usrnm = sc.nextLine();
+                showCitalacStats(usrnm);
             case "x":
             case "X":
                 break;
@@ -66,6 +72,33 @@ public class MainUIHandler {
                 System.out.println("Pogresan broj. Aj ponovo.");
         }
     }
+
+    private void showCitalacStats(String usrnm) {
+        try {
+            List<CitalacStatsDTO> dtos = complexFunctionalityService.getCitalacStats(usrnm);
+
+            System.out.println("============");
+            System.out.println("Izvestaj o stripovima koje je procitao korisnik: " + usrnm);
+            System.out.println("============");
+
+            if (!dtos.isEmpty()) {
+                System.out.printf("%-40s | %-20s | %-15s%n", "Naslov stripa", "Procitanih delova", "Ukupno delova");
+                System.out.println("-------------------------------------------------------------------------------");
+
+                for (CitalacStatsDTO dto : dtos) {
+                    System.out.printf("%-40s | %-20d | %-15d%n",
+                            dto.getNaslovStripa(),
+                            dto.getBrojProcitanihDelova(),
+                            dto.getMaxDelova());
+                }
+            } else {
+                System.out.println("Korisnik " + usrnm + " nije procitao nijedan strip.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private void showSerijalZanrStats() {
         try{
@@ -112,31 +145,6 @@ public class MainUIHandler {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-    }
-
-    private static void runDDL() throws Exception{
-        // reset schema
-        String reset = "DROP SCHEMA public CASCADE;\n" +
-                "CREATE SCHEMA public;\n";
-
-        String ddl = Files.readString(Path.of("src/main/resources/strip_ddl.ddl"));
-        try (Connection conn = ConnectionUtil_HikariCP.getConnection();
-             Statement stmt = conn.createStatement()) {
-
-            stmt.execute(reset);
-            stmt.execute(ddl);
-            System.out.println("Tables created successfully!");
-        }
-    }
-
-    private static void runDML() throws Exception{
-        String dml = Files.readString(Path.of("src/main/resources/seed.sql"));
-        try (Connection conn = ConnectionUtil_HikariCP.getConnection();
-             Statement stmt = conn.createStatement()) {
-
-            stmt.execute(dml);
-            System.out.println("Data seeded successfully!");
         }
     }
 

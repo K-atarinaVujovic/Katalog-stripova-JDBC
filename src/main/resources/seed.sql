@@ -175,7 +175,7 @@ VALUES
 -- Hand Jumper 7
 INSERT INTO public.strip(nas_str, dat_poc, dat_zav, vrsta_izdanja_id_vr_izd)
 VALUES ('Hand Jumper', '2022-01-24', NULL, NULL);
-1
+
 -- Seed
 INSERT INTO public.strip(nas_str, dat_poc, dat_zav, vrsta_izdanja_id_vr_izd)
 VALUES
