@@ -113,19 +113,28 @@ public class SerijalDAOImpl implements SerijalDAO {
         return exists;
     }
 
-    public boolean save(Serijal serijal) throws SQLException{
+    public Serijal save(Serijal serijal, Connection conn) throws SQLException{
         String query = "INSERT INTO public.serijal(nas_srj)\n" +
                 "\tVALUES (?)";
-        boolean success = false;
+
         try(
-                Connection conn = ConnectionUtil_HikariCP.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(query);
+//                Connection conn = ConnectionUtil_HikariCP.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
         ){
             stmt.setString(1, serijal.getNaslov());
 
             int rowsAffected = stmt.executeUpdate();
 
-            return rowsAffected > 0;
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    int id = generatedKeys.getInt(1);
+                    serijal.setId(id);
+                } else {
+                    throw new SQLException("Saving serijal failed, no ID obtained.");
+                }
+            }
+
+            return serijal;
         }
     }
 

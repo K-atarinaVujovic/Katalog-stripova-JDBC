@@ -4,6 +4,8 @@ import connection.ConnectionUtil_HikariCP;
 import dto.CitalacStatsDTO;
 import dto.SerijalStatsDTO;
 import dto.SerijalZanrStatsDTO;
+import model.Serijal;
+import model.Strip;
 import service.ComplexFunctionalityService;
 import service.DataSeedingService;
 
@@ -12,6 +14,10 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -39,7 +45,7 @@ public class MainUIHandler {
         System.out.println("2 - Izvestaj o serijalu i broju zanrova"); // jednostavan upit
         System.out.println("3 - Izvestaj o serijalima sa vise od jednog stripa (info o autorima i prosecnom broju delova)"); // kompleksan upit
         System.out.println("4 - Izvestaj o procitanom broju delova stripa po korisniku"); // kompleksan upit
-        System.out.println("5 - Direktan unos stripa i serijala sa istim nazivom"); // transakcija
+        System.out.println("5 - Direktan unos stripa i serijala sa istim naslovom (napravi se Serijal sa istim naslovom, kao i red u poveznoj tabeli Pripada)"); // transakcija
         System.out.println("X - Izlazak iz programa");
     }
 
@@ -65,11 +71,45 @@ public class MainUIHandler {
                 System.out.println("Username (mivanovic, ajovanovic, ptomic): ");
                 String usrnm = sc.nextLine();
                 showCitalacStats(usrnm);
+                break;
+            case "5":
+                createStripWithSerijal();
+                break;
             case "x":
             case "X":
                 break;
             default:
                 System.out.println("Pogresan broj. Aj ponovo.");
+        }
+    }
+
+    private void createStripWithSerijal() {
+        try {
+            String naslov = null; // za testiranje transakcije
+
+            System.out.println("Unesite naslov stripa: ");
+            String naslovInput = sc.nextLine();
+            if(!naslovInput.isBlank()){
+                naslov = naslovInput;
+            }
+
+            System.out.println("Unesite datum pocetka (format: yyyy-MM-dd): ");
+            String datumPocetkaInput = sc.nextLine();
+
+            System.out.println("Unesite datum zavrsetka (format: yyyy-MM-dd): ");
+            String datumZavrsetkaInput = sc.nextLine();
+
+            LocalDate datumPocetka = LocalDate.parse(datumPocetkaInput);
+            LocalDate datumZavrsetka = LocalDate.parse(datumZavrsetkaInput);
+
+            Strip strip = new Strip(naslov, datumPocetka, datumZavrsetka);
+
+            complexFunctionalityService.createStripWithSerijal(strip);
+
+        } catch (DateTimeParseException e) {
+            System.out.println("Neispravan format datuma! Koristite: yyyy-MM-dd");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

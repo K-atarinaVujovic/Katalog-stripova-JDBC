@@ -4,11 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@AllArgsConstructor
 public class Serijal {
+    @Getter @Setter
+    private String naslov;
+
     @Getter @Setter
     private int id;
 
-    @Getter @Setter
-    private String naslov;
+    public Serijal(String naslov){
+        this.naslov = naslov;
+    }
 }

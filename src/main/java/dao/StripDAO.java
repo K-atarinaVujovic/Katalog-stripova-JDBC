@@ -1,10 +1,12 @@
 package dao;
 
 import model.Serijal;
+import model.Strip;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public interface StripDAO {
-    boolean save(Serijal serijal) throws SQLException;
+    Strip save(Strip strip, Connection conn) throws SQLException;
     boolean existsById(int id) throws SQLException;
 }
